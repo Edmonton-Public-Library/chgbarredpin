@@ -1,12 +1,10 @@
 #!/usr/bin/perl -w
-####################################################
+#########################################################################
 #
-# Perl source file for project deleteme 
-# Purpose:
-# Method:
+# Perl source file for project chgbarredpin.pl
 #
-# <one line to give the program's name and a brief idea of what it does.>
-#    Copyright (C) 2015  Andrew Nisbet
+# Changes the PIN on barred account.
+#    Copyright (C) 2016  Andrew Nisbet
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -24,11 +22,12 @@
 # MA 02110-1301, USA.
 #
 # Author:  Andrew Nisbet, Edmonton Public Library
-# Created: Thu Nov 19 14:26:00 MST 2015
+# Created: Wed May 11 09:54:40 MDT 2016
 # Rev: 
+#          0.1 - -R, -U, -t, -x, -r tested on production. 
 #          0.0 - Dev. 
 #
-####################################################
+#####################################################################
 
 use strict;
 use warnings;
@@ -42,7 +41,7 @@ use Getopt::Std;
 $ENV{'PATH'}  = qq{:/s/sirsi/Unicorn/Bincustom:/s/sirsi/Unicorn/Bin:/usr/bin:/usr/sbin};
 $ENV{'UPATH'} = qq{/s/sirsi/Unicorn/Config/upath};
 ###############################################
-my $VERSION            = qq{0.0};
+my $VERSION            = qq{0.1};
 my $TEMP_DIR           = `getpathname tmp`;
 chomp $TEMP_DIR;
 my $TIME               = `date +%H%M%S`;
@@ -53,22 +52,39 @@ my @CLEAN_UP_FILE_LIST = (); # List of file names that will be deleted at the en
 my $BINCUSTOM          = `getpathname bincustom`;
 chomp $BINCUSTOM;
 my $PIPE               = "$BINCUSTOM/pipe.pl";
+my $NEW_PIN            = "4617";  # Choose -r to change this to a random value for each PIN changed.
+# Let's restrict profiles so we don't change pins on system cards.
+my $PROFILES           = "EPL_ADLTNR,EPL_ADULT,EPL_JUVGR,EPL_CORP,EPL_ADU05,EPL_JMDCRT,EPL_ADU10,EPL_JRECIP,EPL_JUV,EPL_JUVIND,EPL_JUVNR,EPL_JUV05,EPL_LAD,EPL_JUV10,EPL_MEDCRT,EPL_RECIP,EPL_STAFF,EPL_VOL,EPL_THREE,EPL_VISITR,EPL_TAL,EPL_UAL,EPL_JUV01,EPL_LIFE,EPL_WINNER,EPL_INVPJT,EPL_ADU01,EPL_HOME,EPL_ADU1FR,EPL_XDLOAN,EPL_METRO,EPL_METROJ,EPL_CONCOR,EPL_NORQ,EPL_PRTNR,EPL_JPRTNR,EPL_ONLIN,EPL_JONLIN,EPL_ACCESS";
+my $SHELL_SCRIPT       = "change_barred_pins.sh";
 
 #
 # Message about this program and how to use it.
 #
 sub usage()
 {
-    print STDERR \<\< "EOF";
+    print STDERR << "EOF";
 
-	usage: $0 [-xt]
-Usage notes for deleteme.pl.
+	usage: $0 [-rRtUx]
+SSO will authenticate library customers through EZproxy to provide access to most of the library's online 
+resources. BC refuses to amend their code to test the status of a customer before approving authentication. 
+The result is that BARRED customers are still allowed to use online resources. To accommodate BC  this 
+script will change the PINs on all BARRED customer accounts.
 
+ -r: Change PINs for all customers affected this run to a common, but random number.
+ -R: Change PINs for all customers affected this run to a unique, and random number. Slower.
  -t: Preserve temporary files in $TEMP_DIR.
+ -U: Actually change the pins, otherwise just produce selection in temp files. See -t.
+     If you also choose -R, you will have to change the file '$SHELL_SCRIPT' to executable,
+     and then run that shell script to make the desired PIN changes.
  -x: This (help) message.
 
 example:
-  $0 -x
+  $0 -URt will create a shell script to change large numbers of PINs each to a unique random 4 character value.
+          You will need to make this executable and run it to change all the accounts.
+  $0 -Urt will change all the barred customer account PINs to the same random number.
+  $0 -Ut  will change all the barred customer account PINs to the same default PIN of 4617.
+  $0 -t   will create a selection list of all barred customers in $TEMP_DIR.
+  
 Version: $VERSION
 EOF
     exit;
@@ -124,15 +140,73 @@ sub create_tmp_file( $$ )
 # return: 
 sub init
 {
-    my $opt_string = 'tx';
+    my $opt_string = 'rRtUx';
     getopts( "$opt_string", \%opt ) or usage();
     usage() if ( $opt{'x'} );
 }
 
-init();
+# Creates a random 4 digit PIN.
+# param:  none
+# return: 4 digit PIN.
+sub getRandomPIN()
+{
+	my @value = ( map { sprintf q|%X|, rand(16) } 1 .. 4 );
+	return join '', @value;
+}
 
+init();
 ### code starts
 
+### List of status in Symphony. These map to seluserstatus -t or -j to the text version of status (field 3).
+# USTN|1|BARRED|$<barred>|$<USTN_msg_barred>|BARRED|REPLACE_ALWAYS|N|
+# USTN|2|OK|$<OK>||OK|REPLACE_ALWAYS|N|
+# USTN|3|BLOCKED|$<blocked>|$<USTN_msg_blocked>|BLOCKED|REPLACE_ALWAYS|N|
+# USTN|4|DELINQUENT|$<delinquent>|$<USTN_msg_delinquent>|DELINQUENT|REPLACE_ALWAYS|N|
+# USTN|5|COLLECTION|$<collection_agency>|$<USTN_msg_collection>|BLOCKED|REPLACE_REPORT|N|
+### Selection stage
+printf STDERR "starting user selection.\n";
+my $results = ` seluserstatus -tBARRED -oUt | seluser -iU -p"$PROFILES" -oUSp`;
+printf STDERR "done.\n";
+# Produces:
+# 309|BARRED|EPL_LAD|
+# 1386|BARRED|EPL_ADULT|
+# 1439|BARRED|EPL_ADULT|
+# 1756|BARRED|EPL_ADULT|
+# 2255|BARRED|EPL_XDLOAN|
+### Let's save the results.
+my $barredUserKeys = create_tmp_file( "chgbarredpin_user_selection", $results );
+### -r gives the same random PIN to all accounts affected by this run. 
+my $newPIN = $NEW_PIN;
+### If ILS admin used -r set the new PIN to the value.
+$newPIN = getRandomPIN() if ( $opt{'r'} );
+printf STDERR "->%s<-\n", $newPIN;
+## Now let's change the PIN.
+if ( $opt{'U'} )
+{
+	if ( $opt{'R'} )
+	{
+		# This will create a new file with all the commands required to change the PINs on all the accounts to 
+		# uniquely random numbers.
+		unlink $SHELL_SCRIPT if ( -s $SHELL_SCRIPT ); # Get rid of the old one if data in it.
+		open FH_IN, "<$barredUserKeys" or die "*** error opening '$barredUserKeys', $!\n";
+		while (<FH_IN>)
+		{
+			$newPIN = getRandomPIN();
+			my $userKeyLine = $_;
+			chomp $userKeyLine;
+			`echo "$userKeyLine" |  "$PIPE" -oc0 | "$PIPE" -m'c0:echo ######## \| edituser -R$newPIN' >> "$SHELL_SCRIPT"`;
+		}
+		printf STDERR "shell script '%s' to change all barred users' PINs to unique random values created, but not run.\n", $SHELL_SCRIPT;
+		close FH_IN;
+	}
+	else ## Not -R, but possibly either the default PIN or a pre-picked random PIN. 
+	{
+		# This will make all the barred users for this run have the same random PIN. This is reasonable temporally
+		# since the original run would affect 12559 accounts. Future, more frequent runs will naturally take less time
+		# so changing accounts one-at-a-time may not be unreasonable.
+		`cat "$barredUserKeys" | edituserstatus -R$newPIN`;
+	}
+}
 ### code ends
 if ( $opt{'t'} )
 {
