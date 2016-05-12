@@ -37,12 +37,12 @@ This product is under version control using Git.
 
 Dependencies:
 -------------
-```
+
 seluser
 seluserstatus
 edituserstatus
 [pipe.pl](https://github.com/anisbet/pipe)
-```
+
 
 Known Issues:
 -------------
