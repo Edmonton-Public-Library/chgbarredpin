@@ -31,12 +31,15 @@ USER=sirsi
 REMOTE=~/Unicorn/EPLwork/cronjobscripts/ChangeBarredPINs/
 LOCAL=~/projects/chgbarredpin/
 APP=chgbarredpin.pl
+DRIVER=changebarredpins_driver.sh
 ARGS=-x
 .PHONY: put test production
 production: test
 	scp ${LOCAL}${APP} ${USER}@${PRODUCTION_SERVER}:${REMOTE}
+	scp ${LOCAL}${DRIVER} ${USER}@${PRODUCTION_SERVER}:${REMOTE}
 put: test
 	scp ${LOCAL}${APP} ${USER}@${TEST_SERVER}:${REMOTE}
+	scp ${LOCAL}${DRIVER} ${USER}@${TEST_SERVER}:${REMOTE}
 	ssh ${USER}@${TEST_SERVER} '${REMOTE}${APP} ${ARGS}'
 test:
 	perl -c ${APP}
