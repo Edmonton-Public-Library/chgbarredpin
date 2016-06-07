@@ -79,9 +79,9 @@ script will change the PINs on all BARRED customer accounts.
  -x: This (help) message.
 
 example:
-  $0 -URt will create a shell script to change large numbers of PINs each to a unique random 4 character value.
-          You will need to make this executable and run it to change all the accounts.
-  $0 -Urt will change all the barred customer account PINs to the same random number.
+  $0 -RUt will create a shell script to change large numbers of PINs each to a unique random 4 character value.
+          You will need to make this executable and run it to change all the accounts. This will be slower.
+  $0 -rUt will change all the barred customer account PINs to the same random number. This will be quicker, and automatic.
   $0 -Ut  will change all the barred customer account PINs to the same default PIN of 4617.
   $0 -t   will create a selection list of all barred customers in $TEMP_DIR.
   

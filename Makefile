@@ -28,16 +28,16 @@
 PRODUCTION_SERVER=eplapp.library.ualberta.ca
 TEST_SERVER=edpl-t.library.ualberta.ca
 USER=sirsi
-REMOTE=~/Unicorn/EPLwork/anisbet/
+REMOTE=~/Unicorn/EPLwork/cronjobscripts/ChangeBarredPINs/
 LOCAL=~/projects/chgbarredpin/
 APP=chgbarredpin.pl
 ARGS=-x
 .PHONY: put test production
+production: test
+	scp ${LOCAL}${APP} ${USER}@${PRODUCTION_SERVER}:${REMOTE}
 put: test
 	scp ${LOCAL}${APP} ${USER}@${TEST_SERVER}:${REMOTE}
 	ssh ${USER}@${TEST_SERVER} '${REMOTE}${APP} ${ARGS}'
 test:
 	perl -c ${APP}
-production: test
-	scp ${LOCAL}${APP} ${USER}@${PRODUCTION_SERVER}:${REMOTE}
 
