@@ -38,8 +38,9 @@ APP_DRIVER=chgbarredpin.pl
 cd $WORK_DIR
 if [ -s "$APP_DRIVER" ]
 	$APP_DRIVER -rUt
+	echo "Ran 'chgbarredpin.pl'." | mailx -s"Change PINS report." anisbet\@epl.ca
 else
-	printf "** Error can't find the script '$APP_DRIVER' to run! **"
+	echo "** Error can't find the script '$APP_DRIVER' to run! **" | mailx -s"Change PINS report." anisbet\@epl.ca
 	exit 1
 find
 #EOF
