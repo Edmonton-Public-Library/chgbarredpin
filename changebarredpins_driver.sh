@@ -34,13 +34,13 @@ source /s/sirsi/Unicorn/EPLwork/cronjobscripts/setscriptenvironment.sh
 ###############################################
 VERSION=0.1
 export WORK_DIR=/s/sirsi/Unicorn/EPLwork/cronjobscripts/ChangeBarredPINs
-APP_DRIVER=chgbarredpin.pl
+APP=chgbarredpin.pl
 cd $WORK_DIR
-if [ -s "$APP_DRIVER" ]
-	$APP_DRIVER -rUt
-	echo "Ran 'chgbarredpin.pl'." | mailx -s"Change PINS report." anisbet\@epl.ca
+if [ -s "$APP" ]
+	./$APP -rUt
+	echo "Ran '$APP'." | mailx -s"Change PINS report." anisbet\@epl.ca
 else
-	echo "** Error can't find the script '$APP_DRIVER' to run! **" | mailx -s"Change PINS report." anisbet\@epl.ca
+	echo "** Error can't find the script '$APP' to run! **" | mailx -s"Change PINS report." anisbet\@epl.ca
 	exit 1
 find
 #EOF
