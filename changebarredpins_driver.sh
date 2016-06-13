@@ -36,12 +36,13 @@ source /s/sirsi/Unicorn/EPLwork/cronjobscripts/setscriptenvironment.sh
 VERSION=0.1
 export WORK_DIR=/s/sirsi/Unicorn/EPLwork/cronjobscripts/ChangeBarredPINs
 APP=chgbarredpin.pl
+ADDRESSES=ilsadmins\@epl.ca
 cd $WORK_DIR
 if [ -s "$APP" ]
 	./$APP -rUt
-	echo "Ran '$APP'." | mailx -s"Change PINS report." anisbet\@epl.ca
+	echo "Ran '$APP'." | mailx -s"Change PINS report." $ADDRESSES
 else
-	echo "** Error can't find the script '$APP' to run! **" | mailx -s"Change PINS report." anisbet\@epl.ca
+	echo "** Error can't find the script '$APP' to run! **" | mailx -s"Change PINS report." $ADDRESSES
 	exit 1
 find
 #EOF
