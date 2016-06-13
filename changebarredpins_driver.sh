@@ -39,11 +39,12 @@ APP=chgbarredpin.pl
 ADDRESSES=ilsadmins\@epl.ca
 cd $WORK_DIR
 if [ -s "$APP" ]
+then
 	./$APP -rUt
 	echo "Ran '$APP'." | mailx -s"Change PINS report." $ADDRESSES
 else
 	echo "** Error can't find the script '$APP' to run! **" | mailx -s"Change PINS report." $ADDRESSES
 	exit 1
-find
+fi
 #EOF
 
