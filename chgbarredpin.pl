@@ -209,7 +209,7 @@ if ( $opt{'U'} )
 		# This will make all the barred users for this run have the same random PIN. This is reasonable temporally
 		# since the original run would affect 12559 accounts. Future, more frequent runs will naturally take less time
 		# so changing accounts one-at-a-time may not be unreasonable.
-		`cat "$barredUserKeys" | edituserstatus -R$new_pin`;
+		`cat "$barredUserKeys" | edituser -R$new_pin`;
 	}
 }
 ### code ends
