@@ -31,10 +31,10 @@
 # without assuming any environment settings and we need to use sirsi's.
 ###############################################
 # *** Edit these to suit your environment *** #
-source /s/sirsi/Unicorn/EPLwork/cronjobscripts/setscriptenvironment.sh
+source /software/EDPL/Unicorn/EPLwork/cronjobscripts/setscriptenvironment.sh
 ###############################################
 VERSION=0.1
-export WORK_DIR=/s/sirsi/Unicorn/EPLwork/cronjobscripts/ChangeBarredPINs
+export WORK_DIR=/software/EDPL/Unicorn/EPLwork/cronjobscripts/ChangeBarredPINs
 APP=chgbarredpin.pl
 ADDRESSES=ilsadmins\@epl.ca
 cd $WORK_DIR
