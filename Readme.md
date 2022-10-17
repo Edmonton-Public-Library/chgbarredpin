@@ -2,7 +2,11 @@
 
 Initialized: Wed Nov 18 09:55:09 MST 2015.
 
-Currently we have a nightly process that automatically changes the PIN on BARRED customer accounts to a random number. We would like to extend this process to EPL_CANCEL, LOSTCARD,EPL_ADLTNR, EPL_CONCOR, EPL_GMU, EPL_JONLIN, EPL_JUV, EPL_JUV01,EPL_JUV05, EPL_JUV10, EPL_JUVIND, EPL_JUVNR, EPL_KINGS, EPL_METRO, EPL_METROJ, EPL_NORQ, EPL_SELF, EPL_TAL, EPL_TRESID, EPL_UAL, EPL_VISITR customer accounts.
+Currently we have a nightly process that automatically changes the PIN on BARRED customer accounts to a random number. We would like to extend this process to **EPL_CANCEL, LOSTCARD,EPL_ADLTNR, EPL_CONCOR, EPL_GMU, EPL_JONLIN, EPL_JUV, EPL_JUV01,EPL_JUV05, EPL_JUV10, EPL_JUVIND, EPL_JUVNR, EPL_KINGS, EPL_METRO, EPL_METROJ, EPL_NORQ, EPL_SELF, EPL_TAL, EPL_TRESID, EPL_UAL, EPL_VISITR** customer accounts.
+
+In addition to the above accounts, the script now also select any accounts that expired yesterday (or earlier) and changes their password to an eight (8) character password.
+
+The criteria for expired account profiles are **EPL_CANCEL, LOSTCARD, EPL_ADLTNR, EPL_CONCOR, EPL_GMU, EPL_JONLIN, EPL_JUV, EPL_JUV01, EPL_JUV05, EPL_JUV10, EPL_JUVIND, EPL_JUVNR, EPL_KINGS, EPL_METRO, EPL_METROJ, EPL_NORQ, EPL_SELF, EPL_TAL, EPL_TRESID, EPL_UAL, EPL_VISITR**
 
 ## Instructions for Running:
 ```
