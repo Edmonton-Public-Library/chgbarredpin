@@ -1,14 +1,16 @@
-Project Notes
--------------
+# Project Notes
+
 Initialized: Wed Nov 18 09:55:09 MST 2015.
 
-Instructions for Running:
+Currently we have a nightly process that automatically changes the PIN on BARRED customer accounts to a random number. We would like to extend this process to EPL_CANCEL, LOSTCARD,EPL_ADLTNR, EPL_CONCOR, EPL_GMU, EPL_JONLIN, EPL_JUV, EPL_JUV01,EPL_JUV05, EPL_JUV10, EPL_JUVIND, EPL_JUVNR, EPL_KINGS, EPL_METRO, EPL_METROJ, EPL_NORQ, EPL_SELF, EPL_TAL, EPL_TRESID, EPL_UAL, EPL_VISITR customer accounts.
+
+## Instructions for Running:
 ```
 chgbarredpin.pl -x
 ```
 
-Product Description:
---------------------
+# Product Description:
+
 Perl script written by Andrew Nisbet for Edmonton Public Library, distributable by the enclosed license.
 
 SSO will authenticate library customers through EZproxy to provide access to most of the library's online resources. BC refuses to amend their code to test the status of a customer before approving authentication. The result is that BARRED customers are still allowed to use online resources. To accommodate BC  this script will change the PINs on all BARRED customer accounts.
@@ -30,20 +32,20 @@ echo <user_key> | edituserstatus -R<new_pin>
 Runtime:
 12560 accounts -URt start 3:39, end 3:52 or 12 minutes.
 
-Repository Information:
------------------------
+# Repository Information:
+
 This product is under version control using Git.
 [Visit GitHub](https://github.com/Edmonton-Public-Library)
 
-Dependencies:
--------------
+## Dependencies:
 
 * seluser
 * seluserstatus
 * edituserstatus
 * [pipe.pl](https://github.com/anisbet/pipe)
+* transdate
 
 
-Known Issues:
--------------
+# Known Issues:
+
 None

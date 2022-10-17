@@ -22,22 +22,23 @@
 #
 # Written by Andrew Nisbet at Edmonton Public Library
 # Rev: 
+#      0.1 - Updated test hostname. 
 #      0.0 - Dev. 
 ####################################################
 # Change comment below for appropriate server.
 PRODUCTION_SERVER=edpl.sirsidynix.net
-TEST_SERVER=edpl-t.library.ualberta.ca
+TEST_SERVER=edpltest.sirsidynix.net
 USER=sirsi
-REMOTE=~/Unicorn/EPLwork/cronjobscripts/ChangeBarredPINs/
+REMOTE=/software/EDPL/Unicorn/EPLwork/cronjobscripts/ChangeBarredPINs/
 LOCAL=~/projects/chgbarredpin/
 APP=chgbarredpin.pl
 DRIVER=changebarredpins_driver.sh
 ARGS=-x
-.PHONY: put test production
+.PHONY: put test_server production
 production: test
 	scp ${LOCAL}${APP} ${USER}@${PRODUCTION_SERVER}:${REMOTE}
 	scp ${LOCAL}${DRIVER} ${USER}@${PRODUCTION_SERVER}:${REMOTE}
-put: test
+test_server: test
 	scp ${LOCAL}${APP} ${USER}@${TEST_SERVER}:${REMOTE}
 	scp ${LOCAL}${DRIVER} ${USER}@${TEST_SERVER}:${REMOTE}
 	ssh ${USER}@${TEST_SERVER} '${REMOTE}${APP} ${ARGS}'

@@ -4,7 +4,7 @@
 # Perl source file for project chgbarredpin.pl
 #
 # Changes the PIN on barred account.
-#    Copyright (C) 2016  Andrew Nisbet
+#    Copyright (C) 2022  Andrew Nisbet
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -24,14 +24,18 @@
 # Author:  Andrew Nisbet, Edmonton Public Library
 # Created: Wed May 11 09:54:40 MDT 2016
 # Rev: 
-#          0.2 - Check-and-skip previously changed PINs. 
-#          0.1 - -R, -U, -t, -x, -r tested on production. 
-#          0.0 - Dev. 
+# 1.02.01 - Adding all expired cards to the selection criteria, not
+#   just barred accounts.
+# 0.2 - Check-and-skip previously changed PINs. 
+# 0.1 - -R, -U, -t, -x, -r tested on production. 
+# 0.0 - Dev.
+#
+# TODO: Add logging.
 #
 #####################################################################
 
 use strict;
-chomp($ENV{'HOME'} = `. ~/.bashrc; echo ~`);
+chomp($ENV{'HOME'} = `. /software/EDPL/.bashrc; echo ~`);
 open(my $IN, "<", "$ENV{'HOME'}/Unicorn/Config/environ") or die "$0: $! $ENV{'HOME'}/Unicorn/Config/environ\n";
 while(<$IN>)
 {
@@ -51,7 +55,7 @@ use Getopt::Std;
 # $ENV{'PATH'}  = qq{:/software/EDPL/Unicorn/Bincustom:/software/EDPL/Unicorn/Bin:/usr/bin:/usr/sbin};
 # $ENV{'UPATH'} = qq{/software/EDPL/Unicorn/Config/upath};
 ###############################################
-my $VERSION            = qq{0.2};
+my $VERSION            = qq{1.02.01};
 my $TEMP_DIR           = `getpathname tmp`;
 chomp $TEMP_DIR;
 my $TIME               = `date +%H%M%S`;
@@ -65,7 +69,8 @@ my $PIPE               = "$BINCUSTOM/pipe.pl";
 my $PIN_PREFIX         = "ILS_";
 my $NEW_PIN            = $PIN_PREFIX . "4617";  # Choose -r to change this to a random value for each PIN changed.
 # Let's restrict profiles so we don't change pins on system cards.
-my $PROFILES           = "EPL_ADLTNR,EPL_ADULT,EPL_JUVGR,EPL_CORP,EPL_ADU05,EPL_JMDCRT,EPL_ADU10,EPL_JRECIP,EPL_JUV,EPL_JUVIND,EPL_JUVNR,EPL_JUV05,EPL_LAD,EPL_JUV10,EPL_MEDCRT,EPL_RECIP,EPL_STAFF,EPL_VOL,EPL_THREE,EPL_VISITR,EPL_TAL,EPL_UAL,EPL_JUV01,EPL_LIFE,EPL_WINNER,EPL_INVPJT,EPL_ADU01,EPL_HOME,EPL_ADU1FR,EPL_XDLOAN,EPL_METRO,EPL_METROJ,EPL_CONCOR,EPL_NORQ,EPL_PRTNR,EPL_JPRTNR,EPL_ONLIN,EPL_JONLIN,EPL_ACCESS";
+my $BARRED_PROFILES    = "EPL_ADLTNR,EPL_ADULT,EPL_JUVGR,EPL_CORP,EPL_ADU05,EPL_JMDCRT,EPL_ADU10,EPL_JRECIP,EPL_JUV,EPL_JUVIND,EPL_JUVNR,EPL_JUV05,EPL_LAD,EPL_JUV10,EPL_MEDCRT,EPL_RECIP,EPL_STAFF,EPL_VOL,EPL_THREE,EPL_VISITR,EPL_TAL,EPL_UAL,EPL_JUV01,EPL_LIFE,EPL_WINNER,EPL_INVPJT,EPL_ADU01,EPL_HOME,EPL_ADU1FR,EPL_XDLOAN,EPL_METRO,EPL_METROJ,EPL_CONCOR,EPL_NORQ,EPL_PRTNR,EPL_JPRTNR,EPL_ONLIN,EPL_JONLIN,EPL_ACCESS";
+my $EXPIRED_PROFILES    = "EPL_CANCEL,LOSTCARD,EPL_ADLTNR,EPL_CONCOR,EPL_GMU,EPL_JONLIN,EPL_JUV,EPL_JUV01,EPL_JUV05,EPL_JUV10,EPL_JUVIND,EPL_JUVNR,EPL_KINGS,EPL_METRO,EPL_METROJ,EPL_NORQ,EPL_SELF,EPL_TAL,EPL_TRESID,EPL_UAL,EPL_VISITR";
 my $SHELL_SCRIPT       = "change_barred_pins.sh";
 
 #
@@ -84,8 +89,8 @@ script will change the PINs on all BARRED customer accounts.
 All pins, random or fixed, are prefixed with 'ILS_' to denote that this pin has been changed and doesn't need
 to be revisited by the script. This is done to improve temporal performance.
 
- -r: Change PINs for all customers affected this run to a common, but random number.
- -R: Change PINs for all customers affected this run to a unique, and random number. Slower.
+ -r: Change PINs for all customers affected to a common, but random number.
+ -R: Change PINs for all customers affected to a unique, and random number. Slower.
  -t: Preserve temporary files in $TEMP_DIR.
  -U: Actually change the pins, otherwise just produce selection in temp files. See -t.
      If you also choose -R, you will have to change the file '$SHELL_SCRIPT' to executable,
@@ -164,7 +169,7 @@ sub init
 # return: 4 digit PIN.
 sub getRandomPIN()
 {
-	my @value = ( map { sprintf q|%X|, rand(16) } 1 .. 4 );
+	my @value = ( map { sprintf q|%X|, rand(16) } 1 .. 8 );
 	return $PIN_PREFIX . join '', @value;
 }
 
@@ -179,7 +184,7 @@ init();
 # USTN|5|COLLECTION|$<collection_agency>|$<USTN_msg_collection>|BLOCKED|REPLACE_REPORT|N|
 ### Selection stage
 printf STDERR "starting user selection.\n";
-my $results = ` seluserstatus -tBARRED -oUt | seluser -iU -p"$PROFILES" -oUSpw | "$PIPE" -G"c3:^$PIN_PREFIX"`;
+my $results = ` seluserstatus -tBARRED -oUt | seluser -iU -p"$BARRED_PROFILES" -oUSpw | "$PIPE" -G"c3:^$PIN_PREFIX"`;
 printf STDERR "done.\n";
 # Produces:
 # 309|BARRED|EPL_LAD|6089|
@@ -189,6 +194,13 @@ printf STDERR "done.\n";
 # 2255|BARRED|EPL_XDLOAN|1234|
 ### Let's save the results.
 my $barredUserKeys = create_tmp_file( "chgbarredpin_user_selection", $results );
+# Make another list of users whose cards have expired.
+my $expiredYesterday = `transdate -d+0`;
+chomp($expiredYesterday);
+$results = `seluser -p"$EXPIRED_PROFILES" -e"<$expiredYesterday" -oUSpw | "$PIPE" -G"c3:^$PIN_PREFIX"`;
+my $expiredUserKeys = create_tmp_file( "chgbarredpin_user_selection_expired", $results );
+# Append the two types of accounts to create a master list of accounts for PIN reset.
+`cat $expiredUserKeys >> $barredUserKeys`;
 ### -r gives the same random PIN to all accounts affected by this run. 
 my $new_pin = $NEW_PIN;
 ### If ILS admin used -r set the new PIN to the value.
