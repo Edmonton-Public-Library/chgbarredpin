@@ -33,14 +33,15 @@
 # *** Edit these to suit your environment *** #
 source /software/EDPL/Unicorn/EPLwork/cronjobscripts/setscriptenvironment.sh
 ###############################################
-VERSION=0.1
+VERSION=0.02.00
 export WORK_DIR=/software/EDPL/Unicorn/EPLwork/cronjobscripts/ChangeBarredPINs
 APP=chgbarredpin.pl
+APP_NAME=$(basename -s .sh $0)
 ADDRESSES=ilsadmins\@epl.ca
 cd $WORK_DIR
 if [ -s "$APP" ]
 then
-	./$APP -rUt
+	./$APP -rUt >>$WORK_DIR/${APP_NAME}.log  2>&1
 	echo "Ran '$APP'." | mailx -s"Change PINS report." $ADDRESSES
 else
 	echo "** Error can't find the script '$APP' to run! **" | mailx -s"Change PINS report." $ADDRESSES
