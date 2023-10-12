@@ -4,7 +4,7 @@
 # Perl source file for project chgbarredpin.pl
 #
 # Changes the PIN on barred account.
-#    Copyright (C) 2022  Andrew Nisbet
+#    Copyright (C) 2023  Andrew Nisbet
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -24,6 +24,7 @@
 # Author:  Andrew Nisbet, Edmonton Public Library
 # Created: Wed May 11 09:54:40 MDT 2016
 # Rev: 
+# 1.02.02 - Adding EPL_NOVIDG,EPL_JNOVG profiles.
 # 1.02.01 - Adding all expired cards to the selection criteria, not
 #   just barred accounts.
 # 0.2 - Check-and-skip previously changed PINs. 
@@ -55,7 +56,7 @@ use Getopt::Std;
 # $ENV{'PATH'}  = qq{:/software/EDPL/Unicorn/Bincustom:/software/EDPL/Unicorn/Bin:/usr/bin:/usr/sbin};
 # $ENV{'UPATH'} = qq{/software/EDPL/Unicorn/Config/upath};
 ###############################################
-my $VERSION            = qq{1.02.01};
+my $VERSION            = qq{1.02.02};
 my $TEMP_DIR           = `getpathname tmp`;
 chomp $TEMP_DIR;
 my $TIME               = `date +%H%M%S`;
@@ -69,7 +70,7 @@ my $PIPE               = "$BINCUSTOM/pipe.pl";
 my $PIN_PREFIX         = "ILS_";
 my $NEW_PIN            = $PIN_PREFIX . "4617";  # Choose -r to change this to a random value for each PIN changed.
 # Let's restrict profiles so we don't change pins on system cards.
-my $BARRED_PROFILES    = "EPL_ADLTNR,EPL_ADULT,EPL_JUVGR,EPL_CORP,EPL_ADU05,EPL_JMDCRT,EPL_ADU10,EPL_JRECIP,EPL_JUV,EPL_JUVIND,EPL_JUVNR,EPL_JUV05,EPL_LAD,EPL_JUV10,EPL_MEDCRT,EPL_RECIP,EPL_STAFF,EPL_VOL,EPL_THREE,EPL_VISITR,EPL_TAL,EPL_UAL,EPL_JUV01,EPL_LIFE,EPL_WINNER,EPL_INVPJT,EPL_ADU01,EPL_HOME,EPL_ADU1FR,EPL_XDLOAN,EPL_METRO,EPL_METROJ,EPL_CONCOR,EPL_NORQ,EPL_PRTNR,EPL_JPRTNR,EPL_ONLIN,EPL_JONLIN,EPL_ACCESS";
+my $BARRED_PROFILES    = "EPL_NOVIDG,EPL_JNOVG,EPL_ADLTNR,EPL_ADULT,EPL_JUVGR,EPL_CORP,EPL_ADU05,EPL_JMDCRT,EPL_ADU10,EPL_JRECIP,EPL_JUV,EPL_JUVIND,EPL_JUVNR,EPL_JUV05,EPL_LAD,EPL_JUV10,EPL_MEDCRT,EPL_RECIP,EPL_STAFF,EPL_VOL,EPL_THREE,EPL_VISITR,EPL_TAL,EPL_UAL,EPL_JUV01,EPL_LIFE,EPL_WINNER,EPL_INVPJT,EPL_ADU01,EPL_HOME,EPL_ADU1FR,EPL_XDLOAN,EPL_METRO,EPL_METROJ,EPL_CONCOR,EPL_NORQ,EPL_PRTNR,EPL_JPRTNR,EPL_ONLIN,EPL_JONLIN,EPL_ACCESS";
 my $EXPIRED_PROFILES   = "EPL_CANCEL,LOSTCARD,EPL_ADLTNR,EPL_CONCOR,EPL_GMU,EPL_JONLIN,EPL_JUV,EPL_JUV01,EPL_JUV05,EPL_JUV10,EPL_JUVIND,EPL_JUVNR,EPL_KINGS,EPL_METRO,EPL_METROJ,EPL_NORQ,EPL_SELF,EPL_TAL,EPL_TRESID,EPL_UAL,EPL_VISITR";
 my $SHELL_SCRIPT       = "change_barred_pins.sh";
 
